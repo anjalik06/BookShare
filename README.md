@@ -1,9 +1,9 @@
-📚 BookShare
+BookShare
 
 BookShare is a simple and user-friendly book-sharing platform where users can share and rent books.
 Built with React, TypeScript, Vite, and Tailwind CSS to ensure a fast, clean, and responsive UI.
 
-✨ Features
+Features:
 
 Rent and share books easily
 
@@ -23,6 +23,4 @@ Vite
 
 Tailwind CSS
 
-👩‍💻 Author
 
-Anjali
