@@ -13,7 +13,7 @@ Responsive design with Tailwind CSS
 
 Fast performance powered by Vite
 
-🛠 Tech Stack
+Tech Stack:
 
 React
 
