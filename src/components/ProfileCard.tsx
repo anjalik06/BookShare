@@ -15,7 +15,7 @@ const ProfileCard: React.FC<Props> = ({ user, onUpload, onEditProfilePic }) => (
       {/* Edit Button */}
       <button
         onClick={onEditProfilePic}
-        className="absolute top-1 right-1 text-xs bg-white px-2 py-1 rounded shadow hover:bg-gray-100"
+        className="absolute top-1 right-1 text-xs text-amber-50 bg-blue-500 px-2 py-1 rounded shadow hover:bg-gray-100 hover:text-black"
       >
         Edit
       </button>
@@ -58,7 +58,7 @@ const ProfileCard: React.FC<Props> = ({ user, onUpload, onEditProfilePic }) => (
         onClick={onUpload}
         className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
       >
-        + Upload Book
+        Upload Book
       </button>
     </div>
   </div>

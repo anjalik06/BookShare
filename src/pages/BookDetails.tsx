@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react"; 
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { getBookById } from "../api/books";
 import type { Book } from "../types/book";
 import { useAuth } from "../context/AuthContext";
 
 const BookDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { user: currentUser } = useAuth(); // use AuthContext
+  const nav = useNavigate();
+  const { user: currentUser } = useAuth();
+
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [requestSent, setRequestSent] = useState(false);
@@ -19,6 +21,17 @@ const BookDetails: React.FC = () => {
       try {
         const data = await getBookById(id);
         setBook(data);
+
+        // ⭐ Detect if user has already requested this book
+        if (currentUser && data.requests) {
+          const alreadyRequested = data.requests.some(
+            (req: any) =>
+              req === currentUser._id || req?._id === currentUser._id
+          );
+          if (alreadyRequested) {
+            setRequestSent(true);
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch book:", err);
       } finally {
@@ -27,64 +40,111 @@ const BookDetails: React.FC = () => {
     };
 
     fetchBook();
-  }, [id]);
+  }, [id, currentUser]);
+
+  const deleteBook = async () => {
+    if (!window.confirm("Are you sure you want to delete this book?")) return;
+
+    try {
+      const res = await fetch(`/api/books/${book?._id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+      alert("Book deleted successfully!");
+      nav("/");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Error deleting book");
+    }
+  };
+
+  const startChat = async () => {
+    if (!currentUser || !book?.user) return;
+    try {
+      const token = localStorage.getItem("bookshare_token");
+      const res = await fetch("/api/chat/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ partnerId: book.user._id }),
+      });
+
+      const chat = await res.json();
+      nav(`/chat?open=${chat._id}`);
+    } catch {
+      alert("Unable to start chat.");
+    }
+  };
 
   const handleRequest = async () => {
     if (!book || !currentUser) return;
 
     try {
-      const response = await fetch(`/api/books/${book._id}/request`, {
+      const res = await fetch(`/api/books/${book._id}/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("bookshare_token")}`, // send token
+          Authorization: `Bearer ${localStorage.getItem("bookshare_token")}`,
         },
         body: JSON.stringify({ requesterId: currentUser._id }),
       });
 
-      if (!response.ok) throw new Error("Request failed");
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.message || "Request failed");
+        return;
+      }
 
       alert("Request sent to the owner!");
       setRequestSent(true);
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Failed to send request.");
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-600">
-        <p>Loading book details...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
       </div>
     );
-  }
 
-  if (!book) {
+  if (!book)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-600">
-        <p>Book not found.</p>
+      <div className="min-h-screen flex items-center justify-center">
+        Book not found.
       </div>
     );
-  }
 
-  // Check if current user is the owner
-  const isOwner = book.user && currentUser
-    ? book.user._id.toString() === currentUser._id.toString()
-    : false;
+  const isOwner =
+    book.user && currentUser
+      ? book.user._id.toString() === currentUser._id.toString()
+      : false;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col items-center py-12 px-4">
       <div className="w-full max-w-3xl bg-white/70 backdrop-blur-lg border border-gray-200 rounded-2xl shadow-lg p-8">
-        <Link
-          to="/"
-          className="inline-flex items-center text-sm text-blue-600 hover:underline mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" /> Back to Home
-        </Link>
+        <div className="flex justify-between items-center mb-4">
+          <Link
+            to="/"
+            className="inline-flex items-center text-sm text-blue-600 hover:underline"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" /> Back to Home
+          </Link>
+
+          {isOwner && (
+            <button
+              onClick={deleteBook}
+              className="text-red-600 hover:text-red-800"
+              title="Delete Book"
+            >
+              <Trash2 className="w-6 h-6" />
+            </button>
+          )}
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-6">
-          {/* Book Cover */}
           <div className="sm:w-1/3 flex justify-center">
             {book.cover ? (
               <img
@@ -99,7 +159,6 @@ const BookDetails: React.FC = () => {
             )}
           </div>
 
-          {/* Book Info */}
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{book.title}</h1>
             <p className="text-gray-600 mb-3">by {book.author}</p>
@@ -114,24 +173,31 @@ const BookDetails: React.FC = () => {
                   book.available ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {book.available ? "Available for Borrowing" : "Currently Borrowed"}
+                {book.available ? "Available" : "Borrowed"}
               </span>
             </div>
 
-            {/* Posted By */}
             {book.user && (
               <p className="mt-4 text-gray-500 text-sm">
                 Posted by: <span className="font-medium">{book.user.name}</span>
               </p>
             )}
 
-            {/* Request to Borrow Button */}
+            {!isOwner && book.user && (
+              <button
+                onClick={startChat}
+                className="mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+              >
+                Message Owner
+              </button>
+            )}
+
             {!isOwner && book.user && (
               <div className="mt-4">
                 <button
                   onClick={handleRequest}
                   disabled={!book.available || requestSent}
-                  className={`mt-2 px-4 py-2 rounded-lg font-medium ${
+                  className={`px-4 py-2 rounded-lg font-medium ${
                     book.available && !requestSent
                       ? "bg-blue-600 text-white hover:bg-blue-700"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"

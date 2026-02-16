@@ -3,6 +3,7 @@ import type { Book } from "../types/book";
 import BookList from "../components/BookList";
 import SearchBar from "../components/SearchBar";
 import { getBooks } from "../api/books";
+import ChatFloatingButton from "../components/ChatFloatingButton";
 
 const Home: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
@@ -54,6 +55,7 @@ const Home: React.FC = () => {
           </div>
         )}
       </div>
+        <ChatFloatingButton />
     </div>
   );
 };

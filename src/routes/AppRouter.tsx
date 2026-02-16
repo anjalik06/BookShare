@@ -9,6 +9,7 @@ import Community from "../pages/Community";
 import Leaderboard from "../pages/Leaderboard";
 import Feed from "../pages/Feed";
 import ProtectedRoute from "./ProtectedRoute";
+import Chat from "../pages/Chat";
 
 const AppRouter: React.FC = () => (
   <Routes>
@@ -66,7 +67,17 @@ const AppRouter: React.FC = () => (
         </ProtectedRoute>
       }
     />
+    
+    <Route
+      path="/chat"
+      element={
+        <ProtectedRoute>
+         <Chat/>
+        </ProtectedRoute>
+      }
+    />
   </Routes>
 );
+
 
 export default AppRouter;
