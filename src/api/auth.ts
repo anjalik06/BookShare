@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { User } from "../types/user";
 
-const API_URL = "/api/auth";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
 
 export const loginUser = async (email: string, password: string): Promise<{ user: User, token: string }> => {
   const res = await axios.post(`${API_URL}/login`, { email, password });
