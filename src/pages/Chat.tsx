@@ -5,7 +5,11 @@ import { io, Socket } from "socket.io-client";
 import { useLocation } from "react-router-dom";
 
 // socket connect
-const socket: Socket = io("https://bookshare-backend-p1eo.onrender.com");
+const socket: Socket = io(import.meta.env.VITE_API_URL, {
+  transports: ["websocket"],
+  withCredentials: true,
+});
+
 
 // ---------- TYPES ----------
 interface Member {
