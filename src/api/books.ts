@@ -1,14 +1,14 @@
-import axios from "axios";
+import api from "../api";
 import type { Book } from "../types/book";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api/books`;
+const API_URL = "/api/books";
 
 export const getBooks = async (): Promise<Book[]> => {
-  const res = await axios.get(API_URL);
+  const res = await api.get(API_URL);
   return res.data;
 };
 
 export const getBookById = async (id: string): Promise<Book> => {
-  const res = await axios.get(`${API_URL}/${id}`);
+  const res = await api.get(`${API_URL}/${id}`);
   return res.data;
 };
