@@ -15,7 +15,7 @@ const ChatFloatingButton: React.FC = () => {
     const token = localStorage.getItem("bookshare_token");
     if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-    axios.get("/api/chat/unread/all").then((res) => {
+    axios.get(`${import.meta.env.VITE_API_URL}/api/chat/unread/all`).then((res) => {
       const counts = res.data;
       const values = Object.values(counts) as number[];
 const sum = values.reduce((a, b) => a + b, 0);

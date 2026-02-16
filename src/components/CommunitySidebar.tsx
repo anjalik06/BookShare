@@ -21,7 +21,7 @@ const CommunitySidebar: React.FC = () => {
     const fetchCommunities = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("/api/communities/my", {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/communities/my`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("bookshare_token")}`,
           },

@@ -39,7 +39,7 @@ const UploadBookModal: React.FC<Props> = ({ userId, onClose, onUploaded }) => {
 
     try {
       setLoading(true);
-      await axios.post("/api/books/upload", formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/books/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 

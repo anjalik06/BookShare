@@ -23,7 +23,7 @@ const EditProfilePicModal: React.FC<Props> = ({ userId, onClose, onUpdated }) =>
     const formData = new FormData();
     formData.append("profilePic", file);
 
-    await axios.post(`/api/auth/profile-picture/${userId}`, formData);
+    await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/profile-picture/${userId}`, formData);
     onUpdated();
     onClose();
   };
