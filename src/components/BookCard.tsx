@@ -24,7 +24,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, borrower, owner, returnDate, 
       <div className="h-40 md:h-56 bg-gray-100 flex items-center justify-center">
         {book.cover ? (
           <img
-            src={book.cover}
+            src={`${import.meta.env.VITE_API_URL}${book.cover}`}
             alt={book.title}
             className="h-full w-full object-cover"
           />
