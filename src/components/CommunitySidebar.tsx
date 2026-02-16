@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import api from "../api"; // ✅ use api instance
 
 interface Community {
   _id: string;
@@ -10,22 +10,27 @@ interface Community {
 }
 
 const CommunitySidebar: React.FC = () => {
-  const { user, loading: authLoading } = useAuth(); // get auth loading
+  const { user, loading: authLoading } = useAuth();
   const [communities, setCommunities] = useState<Community[]>([]);
-  const [loading, setLoading] = useState(true); // loading for communities
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) return setLoading(false);
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     const fetchCommunities = async () => {
-      setLoading(true);
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/communities/my`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("bookshare_token")}`,
-          },
-        });
+        setLoading(true);
+
+        const token = localStorage.getItem("bookshare_token");
+        if (token) {
+          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await api.get("/api/communities/my");
         setCommunities(res.data);
       } catch (err) {
         console.error(err);
@@ -40,7 +45,9 @@ const CommunitySidebar: React.FC = () => {
 
   if (authLoading || loading) {
     return (
-      <p className="text-gray-500 text-sm italic text-center mt-4">Loading communities...</p>
+      <p className="text-gray-500 text-sm italic text-center mt-4">
+        Loading communities...
+      </p>
     );
   }
 
@@ -54,10 +61,14 @@ const CommunitySidebar: React.FC = () => {
 
   return (
     <aside className="w-64 bg-white/90 backdrop-blur-lg border border-gray-200 rounded-2xl shadow-lg p-4 flex flex-col gap-4 sticky top-20">
-      <h2 className="text-2xl font-bold text-gray-800 mb-2">📚 My Communities</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-2">
+        📚 My Communities
+      </h2>
 
       {communities.length === 0 ? (
-        <p className="text-gray-500 text-sm italic">You are not following any communities yet.</p>
+        <p className="text-gray-500 text-sm italic">
+          You are not following any communities yet.
+        </p>
       ) : (
         <div className="flex flex-col gap-3">
           {communities.map((c) => (

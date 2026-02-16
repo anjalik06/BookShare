@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
 import type { User } from "../types/user";
 
 interface AuthContextType {
@@ -8,7 +8,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
-  refreshUser: () => Promise<void>;   // ✅ Added
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,51 +23,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 Refresh logged-in user (used after updating profile picture)
-  const refreshUser = async () => {
+  // ✅ Always attach token on app start
+  useEffect(() => {
     const token = localStorage.getItem("bookshare_token");
-    if (!token) return;
+    if (token) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
 
+    refreshUser().finally(() => setLoading(false));
+  }, []);
+
+  const refreshUser = async () => {
     try {
-      const res = await axios.get("/api/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/api/auth/me");
       setUser(res.data.user);
     } catch {
       logout();
     }
   };
 
-  // Load user on app start
-  useEffect(() => {
-    refreshUser().finally(() => setLoading(false));
-  }, []);
-
   const login = async (email: string, password: string) => {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, { email, password });
-    localStorage.setItem("bookshare_token", res.data.token);
+    const res = await api.post("/api/auth/login", { email, password });
 
-    axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+    localStorage.setItem("bookshare_token", res.data.token);
+    api.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+
     setUser(res.data.user);
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const res = await axios.post("/api/auth/register", { name, email, password });
-    localStorage.setItem("bookshare_token", res.data.token);
+    const res = await api.post("/api/auth/register", {
+      name,
+      email,
+      password,
+    });
 
-    axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+    localStorage.setItem("bookshare_token", res.data.token);
+    api.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+
     setUser(res.data.user);
   };
 
   const logout = () => {
     localStorage.removeItem("bookshare_token");
-    delete axios.defaults.headers.common["Authorization"];
+    delete api.defaults.headers.common["Authorization"];
     setUser(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, refreshUser }} // ✅ Added
+      value={{ user, loading, login, register, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

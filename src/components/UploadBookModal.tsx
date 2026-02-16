@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../api"; // ✅ use api instance
 
 interface Props {
   userId: string;
@@ -16,7 +16,6 @@ const UploadBookModal: React.FC<Props> = ({ userId, onClose, onUploaded }) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Load preview
   const handleFileChange = (file: File) => {
     setCover(file);
     setPreview(URL.createObjectURL(file));
@@ -39,8 +38,16 @@ const UploadBookModal: React.FC<Props> = ({ userId, onClose, onUploaded }) => {
 
     try {
       setLoading(true);
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/books/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+
+      const token = localStorage.getItem("bookshare_token");
+      if (token) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
+
+      await api.post("/api/books/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       alert("Book uploaded!");
@@ -57,10 +64,10 @@ const UploadBookModal: React.FC<Props> = ({ userId, onClose, onUploaded }) => {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[1000]">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-4">
+          Upload New Book
+        </h2>
 
-        <h2 className="text-2xl font-bold text-center mb-4">Upload New Book</h2>
-
-        {/* Modern Upload Box */}
         <div
           className="border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition"
           onClick={() => document.getElementById("coverInput")?.click()}
@@ -76,12 +83,13 @@ const UploadBookModal: React.FC<Props> = ({ userId, onClose, onUploaded }) => {
               <div className="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center text-gray-500">
                 📘
               </div>
-              <p className="text-gray-600 mt-2">Click to upload cover photo</p>
+              <p className="text-gray-600 mt-2">
+                Click to upload cover photo
+              </p>
             </>
           )}
         </div>
 
-        {/* Hidden input */}
         <input
           id="coverInput"
           type="file"
@@ -92,7 +100,6 @@ const UploadBookModal: React.FC<Props> = ({ userId, onClose, onUploaded }) => {
           }
         />
 
-        {/* Inputs */}
         <input
           type="text"
           placeholder="Title *"
@@ -125,7 +132,6 @@ const UploadBookModal: React.FC<Props> = ({ userId, onClose, onUploaded }) => {
           rows={3}
         />
 
-        {/* Footer */}
         <div className="flex justify-between mt-5">
           <button
             onClick={onClose}

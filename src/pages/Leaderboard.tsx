@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Crown } from "lucide-react";
-import axios from "axios";
+import api from "../api"; // ✅ use centralized api
 
 interface LeaderUser {
   _id: string;
@@ -18,7 +18,7 @@ const Leaderboard: React.FC = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/leaderboard`); // ⭐ NEW API
+      const res = await api.get("/api/leaderboard");
       setUsers(res.data);
     } catch (err) {
       console.error("Leaderboard fetch error:", err);
@@ -41,11 +41,15 @@ const Leaderboard: React.FC = () => {
       >
         <div className="flex items-center justify-center mb-6">
           <Crown className="text-yellow-500 w-8 h-8 mr-2" />
-          <h2 className="text-2xl font-bold text-gray-800">Top Contributors</h2>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Top Contributors
+          </h2>
         </div>
 
         {loading ? (
-          <p className="text-center text-gray-500">Loading leaderboard...</p>
+          <p className="text-center text-gray-500">
+            Loading leaderboard...
+          </p>
         ) : (
           <ul className="divide-y divide-gray-200">
             {users.map((u, i) => (
@@ -64,7 +68,9 @@ const Leaderboard: React.FC = () => {
                   >
                     #{i + 1}
                   </span>
-                  <span className="font-medium text-gray-800">{u.name}</span>
+                  <span className="font-medium text-gray-800">
+                    {u.name}
+                  </span>
                 </div>
 
                 <div className="text-sm text-gray-600">

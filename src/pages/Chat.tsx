@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api"; // ✅ use centralized api
 import { useAuth } from "../context/AuthContext";
 import { io, Socket } from "socket.io-client";
 import { useLocation } from "react-router-dom";
 
-// socket connect
+// ✅ Proper socket connection
 const socket: Socket = io(import.meta.env.VITE_API_URL, {
   transports: ["websocket"],
   withCredentials: true,
 });
 
-
-// ---------- TYPES ----------
 interface Member {
   _id: string;
   name: string;
@@ -33,7 +31,6 @@ interface ChatRoom {
   _id: string;
   members: Member[];
 }
-// ----------------------------
 
 const Chat = () => {
   const location = useLocation();
@@ -46,43 +43,36 @@ const Chat = () => {
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
-  /* -----------------------------
-     Load Token for API
-  ------------------------------ */
+  /* Load token into api instance */
   useEffect(() => {
     const token = localStorage.getItem("bookshare_token");
-    if (token) axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    if (token) {
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
   }, []);
 
-  /* -----------------------------
-     Detect ?open=ChatId
-  ------------------------------ */
+  /* Detect ?open=ChatId */
   useEffect(() => {
     const chatId = new URLSearchParams(location.search).get("open");
     if (chatId) setActiveChat(chatId);
   }, [location]);
 
-  /* -----------------------------
-     Load Chat List
-  ------------------------------ */
+  /* Load Chat List */
   useEffect(() => {
     if (!user) return;
-    axios.get(`${import.meta.env.VITE_API_URL}/api/chat`).then((res) => setChats(res.data));
+
+    api.get("/api/chat").then((res) => setChats(res.data));
   }, [user]);
 
-  /* -----------------------------
-     Load Messages + Join Room
-  ------------------------------ */
+  /* Load Messages + Join Room */
   useEffect(() => {
     if (!activeChat) return;
 
-    // join socket room
     socket.emit("joinChat", activeChat);
 
-    // load old messages
-    axios.get(`${import.meta.env.VITE_API_URL}/api/chat/${activeChat}/messages`).then((res) => {
-      setMessages(res.data);
-    });
+    api
+      .get(`/api/chat/${activeChat}/messages`)
+      .then((res) => setMessages(res.data));
 
     const handler = (msg: Message) => {
       if (msg.chatId === activeChat) {
@@ -92,15 +82,12 @@ const Chat = () => {
 
     socket.on("newMessage", handler);
 
-    // ⭐ correct cleanup
     return () => {
       socket.off("newMessage", handler);
     };
   }, [activeChat]);
 
-  /* -----------------------------
-     SEND MESSAGE
-  ------------------------------ */
+  /* Send Message */
   const sendMessage = async () => {
     if (!text.trim() && !file) return;
     if (!activeChat) return;
@@ -109,9 +96,11 @@ const Chat = () => {
     form.append("text", text);
     if (file) form.append("file", file);
 
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/chat/${activeChat}/send`, form, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
+    const res = await api.post(
+      `/api/chat/${activeChat}/send`,
+      form,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
 
     socket.emit("sendMessage", res.data);
 
@@ -121,8 +110,6 @@ const Chat = () => {
 
   return (
     <div className="flex h-screen w-full bg-gray-100">
-
-      {/* LEFT CHAT LIST */}
       <div className="w-1/3 bg-white border-r p-4">
         <h2 className="text-xl font-bold border-b pb-2">Messages</h2>
 
@@ -130,7 +117,6 @@ const Chat = () => {
           {chats.map((c) => {
             const partner = c.members.find((m) => m._id !== user?._id);
 
-            // ⭐ count unread messages for this chat
             const unread = messages.filter(
               (m) =>
                 m.chatId === c._id &&
@@ -154,7 +140,6 @@ const Chat = () => {
                   <p className="font-medium">{partner?.name}</p>
                 </div>
 
-                {/* ⭐ RED BADGE */}
                 {unread > 0 && (
                   <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
                     {unread}
@@ -166,17 +151,17 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* RIGHT CHAT WINDOW */}
       <div className="flex-1 flex flex-col bg-gray-50">
         {activeChat ? (
           <>
-            {/* MESSAGE LIST */}
             <div className="flex-1 p-4 overflow-y-auto">
               {messages.map((msg) => (
                 <div
                   key={msg._id}
                   className={`mb-4 flex ${
-                    msg.sender._id === user?._id ? "justify-end" : "justify-start"
+                    msg.sender._id === user?._id
+                      ? "justify-end"
+                      : "justify-start"
                   }`}
                 >
                   <div
@@ -202,10 +187,7 @@ const Chat = () => {
               ))}
             </div>
 
-            {/* INPUT BAR */}
             <div className="p-4 border-t flex gap-3 items-center bg-white">
-
-              {/* PDF Preview */}
               {file && (
                 <div className="flex items-center gap-2 bg-gray-200 px-3 py-1 rounded-lg">
                   <span className="text-sm">📄 {file.name}</span>
@@ -218,18 +200,18 @@ const Chat = () => {
                 </div>
               )}
 
-              {/* Select PDF */}
               <label className="bg-purple-600 px-3 py-2 rounded text-white cursor-pointer hover:bg-purple-700">
                 📄 Upload PDF
                 <input
                   type="file"
                   accept="application/pdf"
                   className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  onChange={(e) =>
+                    setFile(e.target.files?.[0] || null)
+                  }
                 />
               </label>
 
-              {/* TEXT INPUT */}
               <input
                 className="flex-1 border px-3 py-2 rounded-xl"
                 placeholder="Type a message..."
@@ -237,7 +219,6 @@ const Chat = () => {
                 onChange={(e) => setText(e.target.value)}
               />
 
-              {/* SEND */}
               <button
                 onClick={sendMessage}
                 className="bg-blue-600 text-white px-4 py-2 rounded-xl"
