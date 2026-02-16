@@ -7,11 +7,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://bookshare-backend-p1eo.onrender.com:5000',
+        target: 'https://bookshare-backend-p1eo.onrender.com',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'https://bookshare-backend-p1eo.onrender.com:5000',
+        target: 'https://bookshare-backend-p1eo.onrender.com',
         changeOrigin: true,
       }
     }

@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await axios.post("/api/auth/login", { email, password });
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, { email, password });
     localStorage.setItem("bookshare_token", res.data.token);
 
     axios.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;

@@ -28,7 +28,7 @@ const CommunityPage: React.FC = () => {
     const fetchCommunityAndPosts = async () => {
       try {
         // Fetch community info
-        const commRes = await axios.get(`/api/communities/${id}`, {
+        const commRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/communities/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("bookshare_token")}`,
           },
@@ -36,7 +36,7 @@ const CommunityPage: React.FC = () => {
         setCommunity(commRes.data);
 
         // Fetch posts for this community
-        const postRes = await axios.get(`/api/posts/community/${id}`, {
+        const postRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/posts/community/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("bookshare_token")}`,
           },
@@ -53,7 +53,7 @@ const CommunityPage: React.FC = () => {
   const likePost = async (postId: string) => {
     try {
       await axios.post(
-        `/api/posts/${postId}/like`,
+        `${import.meta.env.VITE_API_URL}/api/posts/${postId}/like`,
         {},
         { headers: { Authorization: `Bearer ${localStorage.getItem("bookshare_token")}` } }
       );

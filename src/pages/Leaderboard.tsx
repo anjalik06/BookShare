@@ -18,7 +18,7 @@ const Leaderboard: React.FC = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await axios.get("/api/leaderboard"); // ⭐ NEW API
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/leaderboard`); // ⭐ NEW API
       setUsers(res.data);
     } catch (err) {
       console.error("Leaderboard fetch error:", err);

@@ -13,7 +13,7 @@ const Register: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("/api/auth/register", {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         name,
         email,
         password,

@@ -46,7 +46,7 @@ const BookDetails: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this book?")) return;
 
     try {
-      const res = await fetch(`/api/books/${book?._id}`, { method: "DELETE" });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${book?._id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       alert("Book deleted successfully!");
       nav("/");
@@ -60,7 +60,7 @@ const BookDetails: React.FC = () => {
     if (!currentUser || !book?.user) return;
     try {
       const token = localStorage.getItem("bookshare_token");
-      const res = await fetch("/api/chat/start", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -80,7 +80,7 @@ const BookDetails: React.FC = () => {
     if (!book || !currentUser) return;
 
     try {
-      const res = await fetch(`/api/books/${book._id}/request`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/books/${book._id}/request`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

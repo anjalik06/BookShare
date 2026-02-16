@@ -5,7 +5,7 @@ import { io, Socket } from "socket.io-client";
 import { useLocation } from "react-router-dom";
 
 // socket connect
-const socket: Socket = io("http://https://yourapp.onrender.com");
+const socket: Socket = io("https://bookshare-backend-p1eo.onrender.com");
 
 // ---------- TYPES ----------
 interface Member {
@@ -63,7 +63,7 @@ const Chat = () => {
   ------------------------------ */
   useEffect(() => {
     if (!user) return;
-    axios.get("/api/chat").then((res) => setChats(res.data));
+    axios.get(`${import.meta.env.VITE_API_URL}/api/chat`).then((res) => setChats(res.data));
   }, [user]);
 
   /* -----------------------------
@@ -76,7 +76,7 @@ const Chat = () => {
     socket.emit("joinChat", activeChat);
 
     // load old messages
-    axios.get(`/api/chat/${activeChat}/messages`).then((res) => {
+    axios.get(`${import.meta.env.VITE_API_URL}/api/chat/${activeChat}/messages`).then((res) => {
       setMessages(res.data);
     });
 
@@ -105,7 +105,7 @@ const Chat = () => {
     form.append("text", text);
     if (file) form.append("file", file);
 
-    const res = await axios.post(`/api/chat/${activeChat}/send`, form, {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/chat/${activeChat}/send`, form, {
       headers: { "Content-Type": "multipart/form-data" }
     });
 
